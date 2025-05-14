@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/">Главная</a></li>
+            <li class="breadcrumb-item"><a href="/ranobe/{{ volume.ranobe.id }}">{{ volume.ranobe.title }}</a></li>
+            <li class="breadcrumb-item active">Том {{ volume.volume_number }}</li>
+        </ol>
+    </nav>
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Том {{ volume.volume_number }}</h1>
+        {% if current_user.is_authenticated and (current_user.id == volume.ranobe.author_id or current_user.id == 1) %}
+        <a href="/delete_volume/{{ volume.id }}" class="btn btn-sm btn-outline-danger">
+            <i class="bi bi-trash"></i> Удалить
+        </a>
+        {% endif %}
+    </div>
+
+    {% if volume.cover_image %}
+    <div class="text-center mb-4">
+        <img src="{{ volume.cover_image }}" class="img-fluid rounded" style="max-height: 300px;" alt="{{ volume.title }}">
+    </div>
+    {% endif %}
+
+    {% if volume.description %}
+    <div class="card mb-4">
+        <div class="card-body">
+            <p class="card-text">{{ volume.description }}</p>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if current_user.is_authenticated and (current_user.id == volume.ranobe.author_id or current_user.id == 1) %}
+        <a href="/ranobe/{{ volume.ranobe.id }}/add_chapter?volume_id={{ volume.id }}" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Добавить главу
+        </a>
+    {% endif %}
+
+    <h2 class="mb-3">Главы</h2>
+    <div class="list-group">
+        {% for chapter in chapters %}
+        <div class="list-group-item">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <a href="/chapter/{{ chapter.id }}" class="text-decoration-none">
+                        <h5 class="mb-1">Глава {{ chapter.chapter_number }}: {{ chapter.title }}</h5>
+                    </a>
+                    <small class="text-muted">
+                        {{ chapter.created_date.strftime('%d.%m.%Y') }}
+                    </small>
+                </div>
+                {% if current_user.is_authenticated and (current_user.id == volume.ranobe.author_id or current_user.id == 1) %}
+                <div class="btn-group btn-group-sm">
+                    <a href="/edit_chapter/{{ chapter.id }}" class="btn btn-outline-warning">
+                        <i class="bi bi-pencil"></i>
+                    </a>
+                    <a href="/delete_chapter/{{ chapter.id }}" class="btn btn-outline-danger">
+                        <i class="bi bi-trash"></i>
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

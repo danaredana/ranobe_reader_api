@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>{{ ranobe.title }}</h1>
+        {% if current_user.is_authenticated and (current_user.id == ranobe.author_id or current_user.id == 1) %}
+        <div>
+            <a href="/edit_ranobe/{{ ranobe.id }}" class="btn btn-sm btn-outline-warning">
+                <i class="bi bi-pencil"></i> Редактировать
+            </a>
+            <a href="/delete_ranobe/{{ ranobe.id }}" class="btn btn-sm btn-outline-danger">
+                <i class="bi bi-trash"></i> Удалить
+            </a>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Измененный блок с описанием -->
+    <div class="card mb-4">
+        <div class="card-body" style="white-space: pre-wrap;">
+            {{ ranobe.description }}
+        </div>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>Тома</h2>
+        {% if current_user.is_authenticated and (current_user.id == ranobe.author_id or current_user.id == 1) %}
+        <form action="/ranobe/{{ ranobe.id }}/new_volume" method="post">
+            <button type="submit" class="btn btn-sm btn-primary">
+                <i class="bi bi-plus"></i> Новый том
+            </button>
+        </form>
+        {% endif %}
+    </div>
+
+    <div class="list-group">
+        {% for volume in ranobe.volumes|sort(attribute='volume_number') %}
+        <div class="list-group-item">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <a href="/volume/{{ volume.id }}" class="text-decoration-none">
+                        <h4 class="mb-1">Том {{ volume.volume_number }}</h4>
+                    </a>
+                    <small class="text-muted">
+                        {{ volume.chapters|length }} глав
+                    </small>
+                </div>
+                <div class="btn-group">
+                    {% if current_user.is_authenticated and (current_user.id == ranobe.author_id or current_user.id == 1) %}
+                    <a href="/ranobe/{{ ranobe.id }}/add_chapter?volume_id={{ volume.id }}"
+                       class="btn btn-sm btn-outline-primary">
+                        <i class="bi bi-plus"></i> Добавить главу
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<style>
+    .card-body {
+        line-height: 1.6;
+        font-size: 1.05rem;
+    }
+</style>
+{% endblock %}
