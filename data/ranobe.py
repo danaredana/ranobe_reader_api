@@ -3,6 +3,7 @@ from sqlalchemy import orm
 from sqlalchemy_serializer import SerializerMixin
 from .db_session import SqlAlchemyBase
 
+
 class Ranobe(SqlAlchemyBase, SerializerMixin):
     __tablename__ = 'ranobe'
 
@@ -13,7 +14,6 @@ class Ranobe(SqlAlchemyBase, SerializerMixin):
     author_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('users.id'))
     created_date = sqlalchemy.Column(sqlalchemy.DateTime, default=sqlalchemy.func.now())
 
-    # Отношения
     author = orm.relationship('User')
     volumes = orm.relationship('Volume', back_populates='ranobe', cascade='all, delete-orphan')
 
