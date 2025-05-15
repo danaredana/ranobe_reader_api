@@ -3,6 +3,7 @@ from sqlalchemy import orm
 from sqlalchemy_serializer import SerializerMixin
 from .db_session import SqlAlchemyBase
 
+
 class Chapter(SqlAlchemyBase, SerializerMixin):
     __tablename__ = 'chapters'
 
@@ -13,7 +14,6 @@ class Chapter(SqlAlchemyBase, SerializerMixin):
     volume_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('volumes.id'))
     created_date = sqlalchemy.Column(sqlalchemy.DateTime, default=sqlalchemy.func.now())
 
-    # Отношения
     volume = orm.relationship('Volume', back_populates='chapters')
     comments = orm.relationship('Comment', back_populates='chapter', cascade='all, delete-orphan')
 
