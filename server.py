@@ -22,6 +22,7 @@ login_manager = LoginManager()
 login_manager.init_app(app)
 
 
+# загрузка пользователя
 @login_manager.user_loader
 def load_user(user_id):
     db_sess = db_session.create_session()
@@ -31,6 +32,7 @@ def load_user(user_id):
         db_sess.close()
 
 
+# главная страница
 @app.route('/')
 def index():
     db_sess = db_session.create_session()
@@ -41,29 +43,24 @@ def index():
         db_sess.close()
 
 
+# регистрация нового пользователя
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     form = RegisterForm()
     if form.validate_on_submit():
         db_sess = db_session.create_session()
         try:
-            # Проверка email
             if db_sess.query(User).filter(User.email == form.email.data).first():
-                flash('Email уже занят', 'danger')
                 return render_template('register.html', form=form)
 
-            # Обработка аватарки
-            avatar_filename = 'default.jpg'  # Значение по умолчанию
+            avatar_filename = 'default.jpg'
 
+            # если загружен пользовательский аватар
             if form.avatar.data:
                 avatar = form.avatar.data
-                # Простое имя файла: user_id + расширение
                 avatar_filename = f"user_{datetime.now().timestamp()}.{secure_filename(avatar.filename).split('.')[-1]}"
-
-                # Сохранение файла
                 avatar.save(os.path.join('static', 'uploads', 'avatars', avatar_filename))
 
-            # Создание пользователя
             user = User(
                 username=form.username.data,
                 email=form.email.data,
@@ -76,12 +73,10 @@ def register():
             db_sess.commit()
 
             login_user(user)
-            flash('Регистрация успешна!', 'success')
             return redirect(url_for('index'))
 
         except Exception as e:
             db_sess.rollback()
-            flash('Ошибка регистрации', 'danger')
             app.logger.error(f"Registration error: {e}")
         finally:
             db_sess.close()
@@ -89,6 +84,7 @@ def register():
     return render_template('register.html', form=form)
 
 
+# вход в систему
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     form = LoginForm()
@@ -108,6 +104,7 @@ def login():
     return render_template('login.html', form=form)
 
 
+# выход (по нажатию на никнейм)
 @app.route('/logout')
 @login_required
 def logout():
@@ -115,6 +112,7 @@ def logout():
     return redirect('/')
 
 
+# страница определенного ранобе
 @app.route('/ranobe/<int:id>')
 def view_ranobe(id):
     db_sess = db_session.create_session()
@@ -129,6 +127,7 @@ def view_ranobe(id):
         db_sess.close()
 
 
+# добавить новое ранобе
 @app.route('/add_ranobe', methods=['GET', 'POST'])
 @login_required
 def add_ranobe():
@@ -150,6 +149,7 @@ def add_ranobe():
     return render_template('add_ranobe.html', form=form)
 
 
+# изменение существующего
 @app.route('/edit_ranobe/<int:id>', methods=['GET', 'POST'])
 @login_required
 def edit_ranobe(id):
@@ -178,6 +178,7 @@ def edit_ranobe(id):
         db_sess.close()
 
 
+# удаление существующего
 @app.route('/delete_ranobe/<int:id>')
 @login_required
 def delete_ranobe(id):
@@ -195,6 +196,7 @@ def delete_ranobe(id):
         db_sess.close()
 
 
+# создание нового тома
 @app.route('/ranobe/<int:ranobe_id>/new_volume', methods=['POST'])
 @login_required
 def new_volume(ranobe_id):
@@ -222,6 +224,7 @@ def new_volume(ranobe_id):
         db_sess.close()
 
 
+# список всех глав определенного тома
 @app.route('/volume/<int:id>')
 def view_volume(id):
     db_sess = db_session.create_session()
@@ -236,6 +239,7 @@ def view_volume(id):
         db_sess.close()
 
 
+# добавление главы
 @app.route('/ranobe/<int:ranobe_id>/add_chapter', methods=['GET', 'POST'])
 @login_required
 def add_chapter(ranobe_id):
@@ -289,6 +293,7 @@ def add_chapter(ranobe_id):
         db_sess.close()
 
 
+# изменение главы
 @app.route('/edit_chapter/<int:id>', methods=['GET', 'POST'])
 @login_required
 def edit_chapter(id):
@@ -321,6 +326,7 @@ def edit_chapter(id):
         db_sess.close()
 
 
+# удаление главы
 @app.route('/delete_chapter/<int:id>')
 @login_required
 def delete_chapter(id):
@@ -339,6 +345,7 @@ def delete_chapter(id):
         db_sess.close()
 
 
+# просмотр определенной главы
 @app.route('/chapter/<int:id>', methods=['GET', 'POST'])
 def view_chapter(id):
     form = CommentForm()
@@ -382,6 +389,7 @@ def view_chapter(id):
         db_sess.close()
 
 
+# удаление коммента
 @app.route('/delete_comment/<int:id>')
 @login_required
 def delete_comment(id):
@@ -400,9 +408,9 @@ def delete_comment(id):
         db_sess.close()
 
 
+# Возвращает json со списком всех ранобе
 @app.route('/api/ranobe', methods=['GET'])
 def api_get_all_ranobe():
-    """Возвращает JSON со списком всех ранобе"""
     db_sess = db_session.create_session()
     try:
         ranobe_list = db_sess.query(Ranobe).order_by(Ranobe.title).all()
@@ -418,9 +426,9 @@ def api_get_all_ranobe():
         db_sess.close()
 
 
+# Возвращает json со списком глав указанного тома
 @app.route('/api/ranobe/<int:ranobe_id>/volumes/<int:volume_number>/chapters', methods=['GET'])
 def api_get_volume_chapters(ranobe_id, volume_number):
-    """Возвращает JSON со списком глав указанного тома"""
     db_sess = db_session.create_session()
     try:
         volume = db_sess.query(Volume).filter(
@@ -446,9 +454,9 @@ def api_get_volume_chapters(ranobe_id, volume_number):
         db_sess.close()
 
 
+# Возвращает json с содержимым главы по глобальному ID главы
 @app.route('/api/chapters/<int:chapter_id>', methods=['GET'])
 def api_get_chapter_content(chapter_id):
-    """Возвращает JSON с содержимым главы по ID главы"""
     db_sess = db_session.create_session()
     try:
         chapter = db_sess.query(Chapter).get(chapter_id)
@@ -473,12 +481,11 @@ def api_get_chapter_content(chapter_id):
         db_sess.close()
 
 
+# Возвращает json с содержимым главы по номеру тома и номеру главы в определенном ранобе
 @app.route('/api/ranobe/<int:ranobe_id>/volumes/<int:volume_number>/chapters/<int:chapter_number>', methods=['GET'])
 def api_get_chapter_content2(ranobe_id, volume_number, chapter_number):
-    """Возвращает JSON с содержимым главы по ID ранобе, номеру тома и номеру главы"""
     db_sess = db_session.create_session()
     try:
-        # Находим том
         volume = db_sess.query(Volume).filter(
             Volume.ranobe_id == ranobe_id,
             Volume.volume_number == volume_number
@@ -487,7 +494,6 @@ def api_get_chapter_content2(ranobe_id, volume_number, chapter_number):
         if not volume:
             return jsonify({'error': 'Volume not found'}), 404
 
-        # Находим главу по номеру в этом томе
         chapter = db_sess.query(Chapter).filter(
             Chapter.volume_id == volume.id,
             Chapter.chapter_number == chapter_number
